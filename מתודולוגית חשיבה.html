@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מתודולוגיית חשיבה</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#4A90D9;--blue-light:#EAF3FB;--blue-dark:#1A5FA8;
+  --yellow:#E8A020;--yellow-light:#FDF4E3;--yellow-dark:#A06010;
+  --green:#2E9E68;--green-light:#E8F5EE;--green-dark:#1A6B42;
+  --orange:#E07030;--orange-light:#FDF0E8;--orange-mid:#F0A070;--orange-dark:#A04010;
+  --w:#FFFFFF;
+}
+html,body{min-height:100vh;background:#1A1A1A;font-family:'Inter',sans-serif;color:var(--w);direction:rtl;}
+#app{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;position:relative;}
+.bg-glow{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0;transition:background 0.8s ease;}
+#main-wrap{position:relative;z-index:1;width:100%;max-width:600px;display:flex;flex-direction:column;align-items:center;}
+.top-bar{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:3rem;}
+.logo{font-size:13px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;opacity:0.4;}
+.phase-pill{font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:5px 14px;border-radius:100px;transition:all 0.4s ease;}
+.phase-blue{background:var(--blue-light);color:var(--blue-dark);}
+.phase-yellow{background:var(--yellow-light);color:var(--yellow-dark);}
+.phase-green{background:var(--green-light);color:var(--green-dark);}
+.phase-orange{background:var(--orange-light);color:var(--orange-dark);}
+.progress-bar-wrap{width:100%;height:2px;background:rgba(255,255,255,0.08);border-radius:2px;margin-bottom:3.5rem;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease,background 0.5s ease;}
+.fill-blue{background:var(--blue);}.fill-yellow{background:var(--yellow);}.fill-green{background:var(--green);}.fill-orange{background:var(--orange);}
+.content-area{width:100%;display:flex;flex-direction:column;align-items:center;animation:fadeUp 0.35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.q-text{font-size:24px;font-weight:400;line-height:1.45;text-align:center;color:var(--w);margin-bottom:1rem;max-width:520px;}
+.hint{font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:1.5rem;text-align:center;}
+.answer-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-size:16px;font-family:'Inter',sans-serif;color:var(--w);padding:1rem 1.25rem;outline:none;transition:border-color 0.2s;direction:rtl;resize:none;}
+.answer-input:focus{border-color:rgba(255,255,255,0.35);}
+.answer-input::placeholder{color:rgba(255,255,255,0.25);font-size:14px;}
+.btn-row{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:1.25rem;flex-wrap:wrap;}
+.continue-btn{padding:0.75rem 2.5rem;border-radius:100px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:opacity 0.2s,transform 0.15s;letter-spacing:0.04em;}
+.continue-btn:hover{opacity:0.85;}.continue-btn:active{transform:scale(0.97);}
+.btn-blue{background:var(--blue);color:var(--w);}.btn-yellow{background:var(--yellow);color:var(--w);}.btn-green{background:var(--green);color:var(--w);}.btn-orange{background:var(--orange);color:var(--w);}
+.back-btn{background:none;border:none;color:rgba(255,255,255,0.25);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;padding:0.5rem 0.75rem;border-radius:8px;transition:color 0.2s;}
+.back-btn:hover{color:rgba(255,255,255,0.5);}
+.yn-row{display:flex;gap:12px;justify-content:center;margin-bottom:0.5rem;}
+.yn-btn{padding:0.75rem 3rem;border-radius:100px;font-size:15px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--w);transition:background 0.2s,transform 0.15s;}
+.yn-btn:hover{background:rgba(255,255,255,0.12);}.yn-btn:active{transform:scale(0.97);}
+.skip-hint{font-size:11px;color:rgba(255,255,255,0.18);text-align:center;margin-top:0.6rem;}
+.no-trade-btn{margin-top:1.5rem;background:none;border:none;color:rgba(255,255,255,0.2);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color 0.2s;}
+.no-trade-btn:hover{color:rgba(255,255,255,0.45);}
+
+/* TIMER */
+.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:2rem;width:100%;}
+.timer-label{font-size:14px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;}
+.timer-circle{position:relative;width:160px;height:160px;}
+.timer-circle svg{transform:rotate(-90deg);}
+.timer-circle .track{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:4;}
+.timer-circle .progress{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke 0.5s;}
+.timer-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:38px;font-weight:300;color:var(--w);letter-spacing:-1px;}
+.timer-start-btn{padding:0.9rem 3rem;border-radius:100px;font-size:15px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;border:none;color:var(--w);transition:opacity 0.2s;}
+.timer-start-btn:hover{opacity:0.85;}
+.timer-done-msg{font-size:15px;color:rgba(255,255,255,0.6);text-align:center;}
+
+/* CHECKLIST */
+.checklist{width:100%;display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem;}
+.check-item{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1rem 1.25rem;cursor:pointer;transition:background 0.2s,border-color 0.2s;user-select:none;}
+.check-item:hover{background:rgba(255,255,255,0.07);}
+.check-item.checked{border-color:rgba(46,158,104,0.5);background:rgba(46,158,104,0.08);}
+.check-box{width:22px;height:22px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green);}
+.check-mark{font-size:13px;color:var(--w);opacity:0;transition:opacity 0.2s;}
+.check-item.checked .check-mark{opacity:1;}
+.check-label{font-size:16px;color:var(--w);}
+
+/* DECLARATIONS */
+.decl-wrap{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;}
+.decl-item{font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.decl-item:last-child{border-bottom:none;}
+
+/* MODEL */
+.model-title-big{font-size:24px;font-weight:400;text-align:center;color:var(--w);margin-bottom:2rem;}
+.model-card{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;}
+.model-row{display:flex;align-items:flex-start;gap:16px;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+.model-row:last-child{border-bottom:none;}
+.model-big{font-size:18px;font-weight:600;min-width:52px;color:var(--yellow);padding-top:2px;}
+.model-right{flex:1;}
+.model-small{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:8px;line-height:1.4;}
+.model-select{font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:var(--w);font-family:'Inter',sans-serif;cursor:pointer;outline:none;}
+.model-select option{background:#2a2a2a;}
+
+/* UPLOAD */
+.upload-zone{width:100%;border:1px dashed rgba(255,255,255,0.2);border-radius:16px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;margin-bottom:1rem;}
+.upload-zone:hover{border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.03);}
+.upload-zone input{display:none;}
+.upload-zone img{max-width:100%;border-radius:10px;margin-top:1rem;}
+.upload-text{font-size:14px;color:rgba(255,255,255,0.35);}
+
+/* SUMMARY */
+.summary-wrap{width:100%;animation:fadeUp 0.35s ease;}
+.summary-header{text-align:center;margin-bottom:2.5rem;}
+.summary-header h2{font-size:28px;font-weight:400;margin-bottom:0.5rem;}
+.summary-header p{font-size:13px;color:rgba(255,255,255,0.35);}
+.no-trade-banner{background:rgba(224,112,48,0.15);border:1px solid rgba(224,112,48,0.3);color:var(--orange-mid);border-radius:12px;padding:1rem 1.5rem;text-align:center;font-size:15px;font-weight:500;margin-bottom:2rem;}
+.summary-section{margin-bottom:2rem;}
+.summary-section-title{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.s-blue .summary-section-title{color:var(--blue);}.s-yellow .summary-section-title{color:var(--yellow);}.s-green .summary-section-title{color:var(--green);}.s-orange .summary-section-title{color:var(--orange);}
+.summary-item{margin-bottom:1rem;}
+.summary-q{font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:2px;}
+.summary-time{font-size:10px;color:rgba(255,255,255,0.18);margin-bottom:4px;}
+.summary-a{font-size:15px;color:var(--w);line-height:1.5;}
+.summary-img{max-width:100%;border-radius:10px;margin-top:8px;}
+.model-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.model-sum-item{background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 14px;}
+.model-sum-big{font-size:13px;font-weight:600;color:var(--yellow);margin-bottom:2px;}
+.model-sum-val{font-size:14px;color:var(--w);}
+.summary-btns{display:flex;gap:10px;margin-top:2rem;}
+.restart-btn{flex:1;padding:1rem;border-radius:100px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--w);transition:background 0.2s;}
+.restart-btn:hover{background:rgba(255,255,255,0.1);}
+.copy-btn{flex:1;padding:1rem;border-radius:100px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;border:none;background:var(--blue);color:var(--w);transition:opacity 0.2s;}
+.copy-btn:hover{opacity:0.85;}
+</style>
+</head>
+<body>
+<div class="bg-glow" id="bg-glow"></div>
+<div id="app">
+  <div id="main-wrap">
+    <div class="top-bar">
+      <div class="logo">מתודולוגיית חשיבה</div>
+      <div class="phase-pill phase-blue" id="phase-pill">הכנה</div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill fill-blue" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div id="content-area" class="content-area"></div>
+  </div>
+</div>
+<script>
+const PHASES={
+  prep:{label:'הכנה',pill:'phase-blue',fill:'fill-blue',btn:'btn-blue',glow:'rgba(74,144,217,0.08)'},
+  analysis:{label:'ניתוח',pill:'phase-yellow',fill:'fill-yellow',btn:'btn-yellow',glow:'rgba(232,160,32,0.08)'},
+  exec:{label:'הוצאה לפועל',pill:'phase-green',fill:'fill-green',btn:'btn-green',glow:'rgba(46,158,104,0.08)'},
+  final:{label:'שאלון אחרון',pill:'phase-orange',fill:'fill-orange',btn:'btn-orange',glow:'rgba(224,112,48,0.08)'},
+};
+
+// type: meditation | declarations | checklist | textarea | yn | model | upload
+const STEPS=[
+  {id:'meditation',  phase:'prep',     type:'meditation',    q:'מדיטציה', duration:120},
+  {id:'declarations',phase:'prep',     type:'declarations',  q:'הצהרות',  duration:60},
+  {id:'checklist',   phase:'prep',     type:'checklist',     q:'בדיקות טכניות',
+    items:['TradingView מחובר לברוקר','סינקר עובד','וויי פאי תקין']},
+  {id:'mental',      phase:'prep',     type:'textarea',      q:'זון רגשי',                hint:'איך אתה ניגש לגרף היום?'},
+  {id:'review',      phase:'analysis', type:'textarea',      q:'סקירה כללית על הגרף',     hint:'מה עשינו בימיים האחרונים ובשבוע האחרון'},
+  {id:'model',       phase:'analysis', type:'model',         q:''},
+  {id:'q1',          phase:'analysis', type:'yn',            q:'האם אני בטוח בכיוון היומי?'},
+  {id:'q2yes',       phase:'analysis', type:'textarea',      q:'האם יש לי יעד מוגדר לעסקה?', hint:'גרף 6 שעות', onlyIf:'q1=כן'},
+  {id:'q3yes',       phase:'analysis', type:'yn',            q:'האם המחיר לקח את כל הנזילות שצריך לקחת כדי לייצר את המהלך?', onlyIf:'q1=כן'},
+  {id:'q2no',        phase:'analysis', type:'yn',            q:'האם באמת יש לי סיבה לנסות לתפוס היום עסקת סקאלפ?', onlyIf:'q1=לא'},
+  {id:'q5',          phase:'analysis', type:'yn',            q:'האם אני סוחר היום את הכסף או את הגרף?', opts:['כסף','גרף']},
+  {id:'upload',      phase:'exec',     type:'upload',        q:'זה הזמן לסמן שני אזורים על הגרף', hint:'סמן מלבן אדום לשורט, כחול ללונג — ואז העלה תמונה'},
+  {id:'q6',          phase:'exec',     type:'textarea',      q:'מה יש באזור הכניסה ולמה זה טוב?'},
+  {id:'q7',          phase:'exec',     type:'textarea',      q:'לימיט או מרקט — ומה צריך לקרות כדי שאכנס בכל אחת מהאפשרויות?'},
+  {id:'q8',          phase:'exec',     type:'textarea',      q:'אם המחיר עושה ________ — אני לא נוגע היום בגרף.', hint:'תרחיש 1'},
+  {id:'q9',          phase:'exec',     type:'textarea',      q:'אם המחיר עושה ________ — אני לא נוגע היום בגרף.', hint:'תרחיש 2'},
+  {id:'q10',         phase:'final',    type:'yn',            q:'האם יש חדשות?'},
+  {id:'q11',         phase:'final',    type:'yn',            q:'האם הסטופ שלי בנקודה שבה אם המחיר מגיע אליה העסקה כבר לא רלוונטית?'},
+  {id:'q12',         phase:'final',    type:'yn',            q:'האם המחיר הגיע לכאן כפי שרציתי?'},
+  {id:'q13',         phase:'final',    type:'textarea',      q:'מה יותר טוב מזה?'},
+];
+
+const DECLARATIONS=[
+  'אני כאן כדי לסחור את הגרף, לא את הכסף',
+  'אני פועל לפי תוכנית ולא לפי רגש',
+  'אני מחכה לעסקה הנכונה, לא רודף אחרי מהלכים',
+  'אני מקבל הפסד כחלק מהתהליך',
+  'היום אני סוחר כמו מקצוען',
+];
+
+let stepIndex=0,answers={},timestamps={},noTrade=false,uploadedImg=null,activeSteps=[];
+let timerInterval=null;
+
+function nowStr(){const d=new Date();return d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});}
+
+function buildActive(){
+  activeSteps=[];
+  const q1=answers['q1'];
+  for(const s of STEPS){
+    if(s.onlyIf){const[k,v]=s.onlyIf.split('=');if(answers[k]!==v)continue;}
+    if((s.id==='q2yes'||s.id==='q3yes')&&q1!=='כן')continue;
+    if(s.id==='q2no'&&q1!=='לא')continue;
+    activeSteps.push(s);
+  }
+  return activeSteps;
+}
+
+function setPhase(phase){
+  const p=PHASES[phase];
+  document.getElementById('phase-pill').className='phase-pill '+p.pill;
+  document.getElementById('phase-pill').textContent=p.label;
+  document.getElementById('progress-fill').className='progress-bar-fill '+p.fill;
+  document.getElementById('bg-glow').style.background='radial-gradient(ellipse at 50% 0%, '+p.glow+' 0%, transparent 70%)';
+}
+
+function setProgress(){
+  const steps=buildActive();
+  const pct=steps.length?Math.round((stepIndex/steps.length)*100):0;
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+
+function goBack(){if(stepIndex<=0)return;if(timerInterval){clearInterval(timerInterval);timerInterval=null;}stepIndex--;render();}
+
+function advance(id,val){
+  if(!timestamps[id])timestamps[id]=nowStr();
+  answers[id]=val;
+  stepIndex++;
+  render();
+}
+
+function render(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  buildActive();
+  if(stepIndex>=activeSteps.length){showSummary();return;}
+  const step=activeSteps[stepIndex];
+  setPhase(step.phase);
+  setProgress();
+  const area=document.getElementById('content-area');
+  area.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='content-area';
+
+  if(step.type==='meditation'){renderTimer(wrap,step);area.appendChild(wrap);return;}
+  if(step.type==='declarations'){renderDeclarations(wrap,step);area.appendChild(wrap);return;}
+  if(step.type==='checklist'){renderChecklist(wrap,step);area.appendChild(wrap);return;}
+  if(step.type==='model'){renderModel(wrap);area.appendChild(wrap);return;}
+  if(step.type==='upload'){renderUpload(wrap,step);area.appendChild(wrap);return;}
+
+  const qEl=document.createElement('div');qEl.className='q-text';qEl.textContent=step.q;wrap.appendChild(qEl);
+  if(step.hint){const h=document.createElement('div');h.className='hint';h.textContent=step.hint;wrap.appendChild(h);}
+  const phase=PHASES[step.phase];
+
+  if(step.type==='textarea'){
+    const ta=document.createElement('textarea');
+    ta.className='answer-input';ta.rows=4;ta.placeholder='כתוב כאן...';ta.dir='auto';
+    if(answers[step.id])ta.value=answers[step.id];
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();advance(step.id,ta.value.trim());}});
+    wrap.appendChild(ta);
+    const btnRow=document.createElement('div');btnRow.className='btn-row';
+    if(stepIndex>0){const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=goBack;btnRow.appendChild(b);}
+    const btn=document.createElement('button');btn.className='continue-btn '+phase.btn;btn.textContent='המשך';
+    btn.onclick=()=>advance(step.id,ta.value.trim());
+    btnRow.appendChild(btn);wrap.appendChild(btnRow);
+    setTimeout(()=>ta.focus(),50);
+  }
+
+  if(step.type==='yn'){
+    const opts=step.opts||['כן','לא'];
+    const row=document.createElement('div');row.className='yn-row';
+    opts.forEach(val=>{
+      const btn=document.createElement('button');btn.className='yn-btn';btn.textContent=val;
+      btn.onclick=()=>{document.removeEventListener('keydown',onKey);advance(step.id,val);};
+      row.appendChild(btn);
+    });
+    wrap.appendChild(row);
+    const sk=document.createElement('div');sk.className='skip-hint';sk.textContent='Enter לדילוג';wrap.appendChild(sk);
+    const onKey=e=>{if(e.key==='Enter'){document.removeEventListener('keydown',onKey);advance(step.id,'');}};
+    document.addEventListener('keydown',onKey);
+    if(stepIndex>0){const btnRow=document.createElement('div');btnRow.className='btn-row';const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=()=>{document.removeEventListener('keydown',onKey);goBack();};btnRow.appendChild(b);wrap.appendChild(btnRow);}
+  }
+
+  const nt=document.createElement('button');nt.className='no-trade-btn';nt.textContent='אין עסקה היום';
+  nt.onclick=()=>{noTrade=true;showSummary();};
+  wrap.appendChild(nt);
+  area.appendChild(wrap);
+}
+
+function renderTimer(wrap,step){
+  const isMed=(step.type==='meditation');
+  const totalSec=step.duration;
+  const R=72,C=2*Math.PI*R;
+
+  const tw=document.createElement('div');tw.className='timer-wrap';
+  const lbl=document.createElement('div');lbl.className='timer-label';lbl.textContent=step.q;tw.appendChild(lbl);
+
+  const circ=document.createElement('div');circ.className='timer-circle';
+  circ.innerHTML=`<svg width="160" height="160" viewBox="0 0 160 160">
+    <circle class="track" cx="80" cy="80" r="${R}"/>
+    <circle class="progress" id="timer-arc" cx="80" cy="80" r="${R}"
+      stroke="${isMed?'#4A90D9':'#E8A020'}"
+      stroke-dasharray="${C}" stroke-dashoffset="0"/>
+  </svg>`;
+  const numEl=document.createElement('div');numEl.className='timer-num';numEl.id='timer-num';numEl.textContent=fmtSec(totalSec);
+  circ.appendChild(numEl);
+  tw.appendChild(circ);
+
+  const startBtn=document.createElement('button');
+  startBtn.className='timer-start-btn '+(isMed?'btn-blue':'btn-yellow');
+  startBtn.textContent='התחל';
+  tw.appendChild(startBtn);
+
+  const doneMsg=document.createElement('div');doneMsg.className='timer-done-msg';doneMsg.style.display='none';
+  doneMsg.textContent=isMed?'המדיטציה הסתיימה ✓':'ההצהרות הסתיימו ✓';
+  tw.appendChild(doneMsg);
+
+  const btnRow=document.createElement('div');btnRow.className='btn-row';btnRow.style.marginTop='1.5rem';
+  if(stepIndex>0){const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=goBack;btnRow.appendChild(b);}
+  const skipBtn=document.createElement('button');skipBtn.className='continue-btn '+(isMed?'btn-blue':'btn-yellow');skipBtn.textContent='המשך';
+  skipBtn.onclick=()=>{if(timerInterval){clearInterval(timerInterval);timerInterval=null;}advance(step.id,'הושלם');};
+  btnRow.appendChild(skipBtn);
+  tw.appendChild(btnRow);
+
+  let running=false,remaining=totalSec;
+  startBtn.onclick=()=>{
+    if(running)return;
+    running=true;startBtn.style.display='none';
+    const arc=document.getElementById('timer-arc');
+    timerInterval=setInterval(()=>{
+      remaining--;
+      document.getElementById('timer-num').textContent=fmtSec(remaining);
+      const offset=C*(1-remaining/totalSec);
+      if(arc)arc.style.strokeDashoffset=offset;
+      if(remaining<=0){
+        clearInterval(timerInterval);timerInterval=null;
+        doneMsg.style.display='block';
+        document.getElementById('timer-num').textContent='00:00';
+      }
+    },1000);
+  };
+
+  wrap.appendChild(tw);
+}
+
+function renderDeclarations(wrap,step){
+  // Show declarations with a 1-min read timer that auto-starts
+  const totalSec=step.duration;
+  const R=72,C=2*Math.PI*R;
+
+  const tw=document.createElement('div');tw.className='timer-wrap';
+  const lbl=document.createElement('div');lbl.className='timer-label';lbl.textContent='הצהרות';tw.appendChild(lbl);
+
+  // declarations list
+  const declWrap=document.createElement('div');declWrap.className='decl-wrap';declWrap.style.textAlign='right';
+  DECLARATIONS.forEach(d=>{const di=document.createElement('div');di.className='decl-item';di.textContent=d;declWrap.appendChild(di);});
+  tw.appendChild(declWrap);
+
+  // small timer
+  const miniRow=document.createElement('div');miniRow.style.cssText='display:flex;align-items:center;gap:10px;justify-content:center;';
+  const miniNum=document.createElement('span');miniNum.style.cssText='font-size:20px;font-weight:300;color:rgba(255,255,255,0.5);';miniNum.textContent=fmtSec(totalSec);
+  const startBtn=document.createElement('button');startBtn.className='timer-start-btn btn-yellow';startBtn.style.cssText='padding:0.5rem 1.5rem;font-size:13px;';startBtn.textContent='התחל';
+  miniRow.appendChild(miniNum);miniRow.appendChild(startBtn);tw.appendChild(miniRow);
+
+  const btnRow=document.createElement('div');btnRow.className='btn-row';btnRow.style.marginTop='1.5rem';
+  if(stepIndex>0){const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=goBack;btnRow.appendChild(b);}
+  const skipBtn=document.createElement('button');skipBtn.className='continue-btn btn-yellow';skipBtn.textContent='המשך';
+  skipBtn.onclick=()=>{if(timerInterval){clearInterval(timerInterval);timerInterval=null;}advance(step.id,'הושלם');};
+  btnRow.appendChild(skipBtn);tw.appendChild(btnRow);
+
+  let remaining=totalSec;
+  startBtn.onclick=()=>{
+    startBtn.style.display='none';
+    timerInterval=setInterval(()=>{
+      remaining--;
+      miniNum.textContent=fmtSec(remaining);
+      if(remaining<=0){clearInterval(timerInterval);timerInterval=null;miniNum.textContent='✓';miniNum.style.color='var(--yellow)';}
+    },1000);
+  };
+
+  wrap.appendChild(tw);
+}
+
+function renderChecklist(wrap,step){
+  const qEl=document.createElement('div');qEl.className='q-text';qEl.textContent=step.q;wrap.appendChild(qEl);
+
+  const cl=document.createElement('div');cl.className='checklist';
+  const checked=new Set(answers[step.id]?answers[step.id].split(',').filter(Boolean):[]);
+
+  step.items.forEach(item=>{
+    const el=document.createElement('div');el.className='check-item'+(checked.has(item)?' checked':'');
+    const box=document.createElement('div');box.className='check-box';
+    const mark=document.createElement('span');mark.className='check-mark';mark.textContent='✓';
+    box.appendChild(mark);
+    const lbl=document.createElement('div');lbl.className='check-label';lbl.textContent=item;
+    el.appendChild(box);el.appendChild(lbl);
+    el.onclick=()=>{
+      if(checked.has(item)){checked.delete(item);el.classList.remove('checked');}
+      else{checked.add(item);el.classList.add('checked');}
+    };
+    cl.appendChild(el);
+  });
+  wrap.appendChild(cl);
+
+  const btnRow=document.createElement('div');btnRow.className='btn-row';
+  if(stepIndex>0){const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=goBack;btnRow.appendChild(b);}
+  const btn=document.createElement('button');btn.className='continue-btn btn-blue';btn.textContent='המשך';
+  btn.onclick=()=>advance(step.id,[...checked].join(','));
+  btnRow.appendChild(btn);wrap.appendChild(btnRow);
+}
+
+function renderModel(wrap){
+  setPhase('analysis');
+  const titleEl=document.createElement('div');titleEl.className='model-title-big';titleEl.textContent='מודל שוק';wrap.appendChild(titleEl);
+  const card=document.createElement('div');card.className='model-card';
+  const rows=[
+    {big:'יומי',small:'האם המחיר בתיקון, דשדוש, מניפולציה או הפצה?',opts:['תיקון','דשדוש','מניפולציה','הפצה'],key:'model_daily'},
+    {big:'6H',  small:'האם המחיר מתואם עם המהלך השבועי?',            opts:['כן','לא'],                          key:'model_6h'},
+    {big:'90M', small:'האם המחיר לקח את הגבוה או הנמוך השבועי?',    opts:['גבוה נלקח','נמוך נלקח','טרם נלקח'],key:'model_90m'},
+  ];
+  const selects={};
+  rows.forEach(r=>{
+    const row=document.createElement('div');row.className='model-row';
+    const big=document.createElement('div');big.className='model-big';big.textContent=r.big;
+    const right=document.createElement('div');right.className='model-right';
+    const small=document.createElement('div');small.className='model-small';small.textContent=r.small;
+    const sel=document.createElement('select');sel.className='model-select';
+    const def=document.createElement('option');def.value='';def.textContent='בחר...';sel.appendChild(def);
+    r.opts.forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt);});
+    if(answers['model']&&answers['model'][r.key])sel.value=answers['model'][r.key];
+    selects[r.key]=sel;
+    right.appendChild(small);right.appendChild(sel);row.appendChild(big);row.appendChild(right);card.appendChild(row);
+  });
+  wrap.appendChild(card);
+  const btnRow=document.createElement('div');btnRow.className='btn-row';
+  if(stepIndex>0){const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=goBack;btnRow.appendChild(b);}
+  const btn=document.createElement('button');btn.className='continue-btn btn-yellow';btn.textContent='המשך';
+  btn.onclick=()=>{const m={};rows.forEach(r=>{m[r.key]=selects[r.key].value||'—';});if(!timestamps['model'])timestamps['model']=nowStr();answers['model']=m;stepIndex++;render();};
+  btnRow.appendChild(btn);wrap.appendChild(btnRow);
+  const nt=document.createElement('button');nt.className='no-trade-btn';nt.textContent='אין עסקה היום';nt.onclick=()=>{noTrade=true;showSummary();};wrap.appendChild(nt);
+}
+
+function renderUpload(wrap,step){
+  const qEl=document.createElement('div');qEl.className='q-text';qEl.textContent=step.q;wrap.appendChild(qEl);
+  if(step.hint){const h=document.createElement('div');h.className='hint';h.textContent=step.hint;wrap.appendChild(h);}
+  const zone=document.createElement('div');zone.className='upload-zone';
+  const fi=document.createElement('input');fi.type='file';fi.accept='image/*';
+  const zt=document.createElement('div');zt.className='upload-text';zt.textContent=uploadedImg?'לחץ להחלפת תמונה':'לחץ להעלאת תמונה';
+  zone.appendChild(fi);zone.appendChild(zt);
+  if(uploadedImg){const img=document.createElement('img');img.src=uploadedImg;zone.appendChild(img);}
+  zone.onclick=()=>fi.click();
+  fi.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      uploadedImg=ev.target.result;answers['upload']=uploadedImg;
+      if(!timestamps['upload'])timestamps['upload']=nowStr();
+      zone.innerHTML='';
+      const img=document.createElement('img');img.src=uploadedImg;zone.appendChild(img);
+      const t=document.createElement('div');t.className='upload-text';t.style.marginTop='8px';t.textContent='לחץ להחלפה';zone.appendChild(t);
+    };
+    reader.readAsDataURL(file);
+  };
+  wrap.appendChild(zone);
+  const btnRow=document.createElement('div');btnRow.className='btn-row';
+  if(stepIndex>0){const b=document.createElement('button');b.className='back-btn';b.textContent='← חזור';b.onclick=goBack;btnRow.appendChild(b);}
+  const btn=document.createElement('button');btn.className='continue-btn btn-green';btn.textContent='המשך';
+  btn.onclick=()=>{if(!timestamps['upload'])timestamps['upload']=nowStr();stepIndex++;render();};
+  btnRow.appendChild(btn);wrap.appendChild(btnRow);
+  const nt=document.createElement('button');nt.className='no-trade-btn';nt.textContent='אין עסקה היום';nt.onclick=()=>{noTrade=true;showSummary();};wrap.appendChild(nt);
+}
+
+function fmtSec(s){const m=Math.floor(s/60);const sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
+
+function buildSummaryText(){
+  const sections=[
+    {label:'הכנה',ids:['meditation','declarations','checklist','mental']},
+    {label:'ניתוח',ids:['review','model','q1','q2yes','q3yes','q2no','q5']},
+    {label:'הוצאה לפועל',ids:['upload','q6','q7','q8','q9']},
+    {label:'שאלון אחרון',ids:['q10','q11','q12','q13']},
+  ];
+  let txt='מתודולוגיית חשיבה — '+new Date().toLocaleDateString('he-IL')+'\n\n';
+  if(noTrade)txt+='⛔ אין עסקה היום\n\n';
+  sections.forEach(sec=>{
+    const hasContent=sec.ids.some(id=>answers[id]||(id==='model'&&answers['model']));
+    if(!hasContent)return;
+    txt+='── '+sec.label+' ──\n';
+    sec.ids.forEach(id=>{
+      if(id==='model'){if(!answers['model'])return;const m=answers['model'];const t=timestamps['model']?'['+timestamps['model']+'] ':'';txt+=t+'מודל שוק:\n  יומי: '+(m.model_daily||'—')+'\n  6H: '+(m.model_6h||'—')+'\n  90M: '+(m.model_90m||'—')+'\n\n';return;}
+      if(id==='upload'||id==='meditation'||id==='declarations')return;
+      if(!answers[id])return;
+      const step=STEPS.find(s=>s.id===id);if(!step)return;
+      const t=timestamps[id]?'['+timestamps[id]+'] ':'';
+      if(id==='checklist'){txt+=t+'בדיקות טכניות: '+answers[id]+'\n\n';return;}
+      txt+=t+step.q+'\n'+answers[id]+'\n\n';
+    });
+  });
+  return txt.trim();
+}
+
+function showSummary(){
+  setPhase('final');
+  document.getElementById('progress-fill').style.width='100%';
+  const area=document.getElementById('content-area');area.innerHTML='';
+  const sum=document.createElement('div');sum.className='summary-wrap';
+  const hdr=document.createElement('div');hdr.className='summary-header';
+  hdr.innerHTML='<h2>סיכום הפרוטוקול</h2><p>'+new Date().toLocaleDateString('he-IL')+'</p>';
+  sum.appendChild(hdr);
+  if(noTrade){const banner=document.createElement('div');banner.className='no-trade-banner';banner.textContent='⛔  אין עסקה היום';sum.appendChild(banner);}
+
+  const sections=[
+    {label:'הכנה',       cls:'s-blue',   ids:['checklist','mental']},
+    {label:'ניתוח',      cls:'s-yellow', ids:['review','model','q1','q2yes','q3yes','q2no','q5']},
+    {label:'הוצאה לפועל',cls:'s-green',  ids:['upload','q6','q7','q8','q9']},
+    {label:'שאלון אחרון',cls:'s-orange', ids:['q10','q11','q12','q13']},
+  ];
+
+  sections.forEach(sec=>{
+    const hasContent=sec.ids.some(id=>answers[id]||(id==='model'&&answers['model']));
+    if(!hasContent)return;
+    const section=document.createElement('div');section.className='summary-section '+sec.cls;
+    const secTitle=document.createElement('div');secTitle.className='summary-section-title';secTitle.textContent=sec.label;section.appendChild(secTitle);
+
+    sec.ids.forEach(id=>{
+      if(id==='model'){
+        if(!answers['model'])return;
+        const m=answers['model'];
+        const item=document.createElement('div');item.className='summary-item';
+        const q=document.createElement('div');q.className='summary-q';q.textContent='מודל שוק';item.appendChild(q);
+        if(timestamps['model']){const ti=document.createElement('div');ti.className='summary-time';ti.textContent=timestamps['model'];item.appendChild(ti);}
+        const grid=document.createElement('div');grid.className='model-summary';
+        [{big:'יומי',key:'model_daily'},{big:'6H',key:'model_6h'},{big:'90M',key:'model_90m'}].forEach(r=>{
+          const mi=document.createElement('div');mi.className='model-sum-item';
+          const mb=document.createElement('div');mb.className='model-sum-big';mb.textContent=r.big;
+          const mv=document.createElement('div');mv.className='model-sum-val';mv.textContent=m[r.key]||'—';
+          mi.appendChild(mb);mi.appendChild(mv);grid.appendChild(mi);
+        });
+        item.appendChild(grid);section.appendChild(item);return;
+      }
+      if(id==='upload'){
+        if(!uploadedImg)return;
+        const item=document.createElement('div');item.className='summary-item';
+        const q=document.createElement('div');q.className='summary-q';q.textContent='אזורי כניסה';item.appendChild(q);
+        if(timestamps['upload']){const ti=document.createElement('div');ti.className='summary-time';ti.textContent=timestamps['upload'];item.appendChild(ti);}
+        const img=document.createElement('img');img.src=uploadedImg;img.className='summary-img';item.appendChild(img);section.appendChild(item);return;
+      }
+      if(id==='checklist'){
+        if(!answers['checklist'])return;
+        const item=document.createElement('div');item.className='summary-item';
+        const q=document.createElement('div');q.className='summary-q';q.textContent='בדיקות טכניות';item.appendChild(q);
+        if(timestamps['checklist']){const ti=document.createElement('div');ti.className='summary-time';ti.textContent=timestamps['checklist'];item.appendChild(ti);}
+        const a=document.createElement('div');a.className='summary-a';a.textContent=answers['checklist']||'—';item.appendChild(a);section.appendChild(item);return;
+      }
+      if(!answers[id])return;
+      const step=STEPS.find(s=>s.id===id);if(!step)return;
+      const item=document.createElement('div');item.className='summary-item';
+      const q=document.createElement('div');q.className='summary-q';q.textContent=step.q;item.appendChild(q);
+      if(timestamps[id]){const ti=document.createElement('div');ti.className='summary-time';ti.textContent=timestamps[id];item.appendChild(ti);}
+      const a=document.createElement('div');a.className='summary-a';a.textContent=answers[id];item.appendChild(a);section.appendChild(item);
+    });
+    sum.appendChild(section);
+  });
+
+  const btns=document.createElement('div');btns.className='summary-btns';
+  const copyBtn=document.createElement('button');copyBtn.className='copy-btn';copyBtn.textContent='העתק סיכום';
+  copyBtn.onclick=()=>{navigator.clipboard.writeText(buildSummaryText()).then(()=>{copyBtn.textContent='הועתק ✓';setTimeout(()=>{copyBtn.textContent='העתק סיכום';},2000);});};
+  const restart=document.createElement('button');restart.className='restart-btn';restart.textContent='פרוטוקול חדש';
+  restart.onclick=()=>{stepIndex=0;answers={};timestamps={};noTrade=false;uploadedImg=null;area.innerHTML='';sum.remove();setPhase('prep');render();};
+  btns.appendChild(copyBtn);btns.appendChild(restart);sum.appendChild(btns);
+  area.appendChild(sum);
+}
+
+render();
+</script>
+</body>
+</html>
